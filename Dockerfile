@@ -1,9 +1,12 @@
-FROM mysql:5.7.9
-MAINTAINER soudegesu
+FROM mysql:latest
 
-ENV MYSQL_ROOT_PASSWORD soudegesu 
-ENV MYSQL_USER soudegesu
-ENV MYSQL_PASSWORD soudegesu
-ENV MYSQL_DATABASE soudegesu
+RUN { \
+   echo '[mysqld]'; \
+   echo 'character-set-server=utf8'; \
+   echo 'collation-server=utf8_general_ci'; \
+   echo '[client]'; \
+   echo 'default-character-set=utf8'; \
+} > /etc/mysql/conf.d/charset.cnf
 
-RUN echo "finished setup !!"
+EXPOSE 3306
+CMD ["mysqld"]
