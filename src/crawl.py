@@ -22,7 +22,7 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 class Page(Base):
     __tablename__ = 'page'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     url = sqlalchemy.Column(sqlalchemy.String(255))
 
 class Link(Base):
@@ -34,36 +34,53 @@ class Link(Base):
     link_text = sqlalchemy.Column(sqlalchemy.Text)    
 
     
-def is_exists(check_url):
+def find_page(url):
     # create session object
     engine = sqlalchemy.create_engine(db_url, echo=False)
     
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     try:
-        found_page = session.query(Page).filter_by(url=check_url).first()
+        found_page = session.query(Page).filter_by(url=url).first()
     except Exception as e:
-        print("select query is failed")
+        print(e)
     finally:
         session.close()
 
-    return found_page != None
+    return found_page
 
-def insert(url, status, parent_url, link_text):
+def insert_link(url, status, parent_id, link_text):
     engine = sqlalchemy.create_engine(db_url, echo=False)
 
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
     
     try:
-        new_one = Page(url=url, status=status, parent_url=parent_url, link_text=link_text)   
+        new_one = Link(url=url, status=status, parent_id=parent_id, link_text=link_text)
         session.add(new_one)
         session.commit()
     except Exception as e:
-        print("Insert failed.")
+        print(e)
         session.rollback()
     finally:
         session.close()
+
+
+def insert_page(url):
+    engine = sqlalchemy.create_engine(db_url, echo=False)
+
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = Session()
+
+    try:
+        page = Page(url=url)
+        session.add(page)
+        session.commit()
+    except Exception as e:
+        print(e)
+        session.rollback()
+    finally:
+	    session.close()
 
 
 # get all anchor tags
@@ -72,32 +89,8 @@ def parse_response(response):
         for a in soup.find_all("a"):
             yield a
 
-def do_request(url, parent_url, txt):
-        
-        # skip if url has already crawled. 
-        if is_exists(url):
-            return
-        
-        request_target = urlparse(url)
-        
-        if request_target.hostname not in allow_urls:
-            return
-
-        response = None
-        try:
-            sleep(interval)
-            response = urllib.request.urlopen(url)
-            insert(url, response.code, parent_url, txt)
-            print(url+":"+str(response.code))
-        except HTTPError as e:
-            # exclude 200
-            insert(url, e.code, parent_url, txt)
-            print(url+":"+str(e.code))            
-            return
-        #  condider redirecting
-        result_url = response.geturl()
-        result_set.add(result_url)
-        
+def get_next(response):
+    
         for tag in parse_response(response):
             if not tag.has_attr('href'):
                 continue
@@ -106,21 +99,53 @@ def do_request(url, parent_url, txt):
                 anchor_text = tag.get_text()                
                 target = urlparse(href)
                 
+                # in case of telephone nubmer
                 if href.startswith("tel:")  or  href.startswith("#"):
-                    # in case of telephone nubmer
+                    continue
+                # skip javascript:void
+                if target.scheme == 'javascript':
                     continue
                 
-                if target.scheme == 'javascript':
-                    # skip javascript:void
-                    continue
-                elif target.scheme == 'http' and target.scheme == 'https':
-                    target = urlparse(href)
-                    do_request(target, result_url, anchor_text)
+                new_link = Link(link_text=anchor_text) 
+                if target.scheme == 'http' and target.scheme == 'https':
+                    new_link.url = urlparse(href) 
                 else:
-                    joined_url = urljoin(result_url, href)
-                    do_request(joined_url, result_url, anchor_text)
+                    new_link.url = urljoin(result_url, href)
+                yield new_link
+
             except Exception as e:
                 continue
+
+def do_request(url, parent_id, txt):
+
+        # skip if url has already crawled.         
+        if urlparse(url).hostname not in allow_urls:
+            return
+
+        if find_page(url) is not None:
+            return
+
+        # change to already crawled. 
+        response = None
+        result_url = None
+        sleep(interval)
+        print('aaaaaa')
+        try:
+            response = urllib.request.urlopen(url)
+            # consider redirect.
+            result_url = response.geturl() 
+            insert_page(result_url)
+            insert_link(result_url, response.code, parent_id, txt)
+        except HTTPError as e:
+            insert_page(url)
+            insert_link(url, e.code, parent_id, txt)
+            return
+        print('bbbbbb')
+
+        # find next crawl target and retry.
+        new_parent = find_page(result_url)
+        (do_request(l.url, new_parent.id, l.txt) for l in get_next(response))
+
 
 if __name__ == "__main__":
 
@@ -130,7 +155,9 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--sleep', nargs=1, type=int, default=1, help='crawling interval: default is 1 second.')
     args = parser.parse_args()
 
+    #set global variables.
     allow_urls = list(chain.from_iterable(args.include))
     interval = args.sleep
     
-    do_request(args.url[0], "", "")
+    start = args.url[0]
+    do_request(start, 7, "")
