@@ -10,9 +10,16 @@ import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 from sqlalchemy import text
+from logging import getLogger, StreamHandler, DEBUG
+
 
 global allow_urls
 global interval
+
+logger = getLogger(__name__)
+handler = StreamHandler()
+logger.setLevel(DEBUG)
+logger.addHandler(handler)
 
 db_url = 'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8'
 result_set = set()
@@ -43,7 +50,7 @@ def find_page(url):
     try:
         found_page = session.query(Page).filter_by(url=url).first()
     except Exception as e:
-        print(e)
+        logger.error("An error occurred while finding %s from database.",url, e)
     finally:
         session.close()
 
@@ -60,7 +67,7 @@ def insert_link(url, status, parent_id, link_text):
         session.add(new_one)
         session.commit()
     except Exception as e:
-        print(e)
+        logger.error("An error occurred while insert link data to database.", e)
         session.rollback()
     finally:
         session.close()
@@ -77,7 +84,7 @@ def insert_page(url):
         session.add(page)
         session.commit()
     except Exception as e:
-        print(e)
+        logger.error("An error occurred while insert page data to database.", e)
         session.rollback()
     finally:
 	    session.close()
@@ -120,16 +127,17 @@ def do_request(url, parent_id, txt):
 
         # skip if url has already crawled.         
         if urlparse(url).hostname not in allow_urls:
+            logger.info("This domain is not target for crawling.(%s)", url)
             return
 
         if find_page(url) is not None:
+            logger.info("This url has been already crawled.(%s)", url)
             return
 
         # change to already crawled. 
         response = None
         result_url = None
         sleep(interval)
-        print('aaaaaa')
         try:
             response = urllib.request.urlopen(url)
             # consider redirect.
@@ -140,7 +148,6 @@ def do_request(url, parent_id, txt):
             insert_page(url)
             insert_link(url, e.code, parent_id, txt)
             return
-        print('bbbbbb')
 
         # find next crawl target and retry.
         new_parent = find_page(result_url)
@@ -160,4 +167,4 @@ if __name__ == "__main__":
     interval = args.sleep
     
     start = args.url[0]
-    do_request(start, 7, "")
+    do_request(start, 1, "")
