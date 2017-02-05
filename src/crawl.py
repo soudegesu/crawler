@@ -30,14 +30,10 @@ class Page(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     url = sqlalchemy.Column(sqlalchemy.String(255))
-
-class Link(Base):
-    __tablename__ = 'link'
-    
-    url = sqlalchemy.Column(sqlalchemy.String(255), primary_key=True)
     status = sqlalchemy.Column(sqlalchemy.Integer)
     parent_id = sqlalchemy.Column(sqlalchemy.Integer)
     link_text = sqlalchemy.Column(sqlalchemy.Text)
+    state = sqlalchemy.Column(sqlalchemy.Integer)
 
     
 def find_page(url):
@@ -56,25 +52,8 @@ def find_page(url):
 
     return found_page
 
-def insert_link(url, status, parent_id, link_text):
-    engine = sqlalchemy.create_engine(db_url, echo=False)
 
-    Session = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = Session()
-    
-    try:
-        logger.debug("insert link data %s.", url)
-        new_one = Link(url=url, status=status, parent_id=parent_id, link_text=link_text)
-        session.add(new_one)
-        session.commit()
-    except Exception as e:
-        logger.error("An error occurred while insert link data to database.", e)
-        session.rollback()
-    finally:
-        session.close()
-
-
-def insert_page(url):
+def insert_page(url, status, parent_id, link_text, state):
     engine = sqlalchemy.create_engine(db_url, echo=False)
 
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -82,7 +61,7 @@ def insert_page(url):
 
     try:
         logger.debug("insert data %s.", url)
-        page = Page(url=url)
+        page = Page(url=url, status=status, parent_id=parent_id, link_text=link_text, state=state)
         session.add(page)
         session.commit()
     except Exception as e:
@@ -126,9 +105,13 @@ def get_next(response):
                 logger.error("An error occurred while find anchor link.")
                 continue
 
-def do_request(url, parent_id, txt):
+def do_request(p):
 
-        # skip if url has already crawled.         
+        url = p.url
+        parent_id = p.parent_id
+        txt = p.link_text
+
+        # skip if url has already crawled.
         if urlparse(url).hostname not in allow_urls:
             logger.info("This domain is not target for crawling.(%s)", url)
             return
@@ -146,11 +129,9 @@ def do_request(url, parent_id, txt):
             response = urllib.request.urlopen(url)
             # consider redirect.
             result_url = response.geturl() 
-            insert_page(result_url)
-            insert_link(result_url, response.code, parent_id, txt)
+            insert_page(result_url, response.code, parent_id, txt, 0)
         except HTTPError as e:
-            insert_page(url)
-            insert_link(url, e.code, parent_id, txt)
+            insert_page(result_url, response.code, parent_id, txt, 0)
             return
 
         # find next crawl target and retry.
