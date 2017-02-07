@@ -169,7 +169,6 @@ def do_request(p):
         logger.debug("insert page.")
         insert_page(result_url, url, response.code, parent_id, txt, State.in_progress.value)
     except HTTPError as e:
-        logger.warn("HTTP error %s", e)
         insert_page(result_url, url, e.code, parent_id, txt, State.finished.value)
         return
 
