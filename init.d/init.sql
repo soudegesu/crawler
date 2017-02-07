@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS crawl.page (
   url varchar(255) NOT NULL UNIQUE,
   status int NOT NULL,
   parent_id int NOT NULL,
-  link_text varchar(255),
+  link_text TEXT,
   state int NOT NULL,
 
   INDEX parent_url (url),
