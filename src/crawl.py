@@ -36,6 +36,7 @@ class Page(Base):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     url = sqlalchemy.Column(sqlalchemy.String(255))
+    previous_url = sqlalchemy.Column(sqlalchemy.String(255))
     status = sqlalchemy.Column(sqlalchemy.Integer)
     parent_id = sqlalchemy.Column(sqlalchemy.Integer)
     link_text = sqlalchemy.Column(sqlalchemy.Text)
@@ -58,8 +59,23 @@ def find_page(url):
 
     return found_page
 
+def find_previous_page(previous_url):
+    # create session object
+    engine = sqlalchemy.create_engine(db_url, echo=False)
 
-def insert_page(url, status, parent_id, link_text, state):
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = Session()
+    found_page = None
+    try:
+        found_page = session.query(Page).filter_by(previous_url=previous_url).first()
+    except Exception as e:
+        logger.error("An error occurred while finding %s from database.", previous_url, e)
+    finally:
+        session.close()
+
+    return found_page
+
+def insert_page(url, previous_url, status, parent_id, link_text, state):
     engine = sqlalchemy.create_engine(db_url, echo=False)
 
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
@@ -67,7 +83,7 @@ def insert_page(url, status, parent_id, link_text, state):
 
     try:
         logger.debug("insert data %s.", url)
-        page = Page(url=url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
+        page = Page(url=url, previous_url=previous_url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
         session.add(page)
         session.commit()
     except Exception as e:
@@ -138,8 +154,7 @@ def do_request(p):
         logger.info("This domain is not target for crawling.(%s)", url)
         return
 
-    page = find_page(url)
-    if page is not None:
+    if find_previous_page(url) is not None or find_page(url) is not None:
         logger.info("This url has been already crawled.(%s)", url)
         return
 
@@ -152,9 +167,10 @@ def do_request(p):
         # consider redirect.
         result_url = response.geturl()
         logger.debug("insert page.")
-        insert_page(result_url, response.code, parent_id, txt, State.in_progress.value)
+        insert_page(result_url, url, response.code, parent_id, txt, State.in_progress.value)
     except HTTPError as e:
-        insert_page(result_url, e.code, parent_id, txt, State.finished.value)
+        logger.warn("HTTP error %s", e)
+        insert_page(result_url, url, e.code, parent_id, txt, State.finished.value)
         return
 
     # find next crawl target and retry.
