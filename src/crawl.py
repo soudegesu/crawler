@@ -11,6 +11,7 @@ import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 from sqlalchemy import text
 from logging import getLogger, StreamHandler, DEBUG
+from enum import IntEnum
 
 global allow_urls
 global interval
@@ -24,6 +25,11 @@ db_url = 'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8'
 result_set = set()
 
 Base = sqlalchemy.ext.declarative.declarative_base()
+
+class State(IntEnum):
+	not_work = 0
+	in_progress = 1
+	finished = 2
 
 class Page(Base):
     __tablename__ = 'page'
@@ -42,11 +48,11 @@ def find_page(url):
     
     Session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = Session()
+    found_page = None
     try:
-        logger.debug("search for %s.", url)
         found_page = session.query(Page).filter_by(url=url).first()
     except Exception as e:
-        logger.error("An error occurred while finding %s from database.",url, e)
+        logger.error("An error occurred while finding %s from database.", url, e)
     finally:
         session.close()
 
@@ -61,7 +67,7 @@ def insert_page(url, status, parent_id, link_text, state):
 
     try:
         logger.debug("insert data %s.", url)
-        page = Page(url=url, status=status, parent_id=parent_id, link_text=link_text, state=state)
+        page = Page(url=url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
         session.add(page)
         session.commit()
     except Exception as e:
@@ -70,74 +76,92 @@ def insert_page(url, status, parent_id, link_text, state):
     finally:
         session.close()
 
+def update_state(url, state):
+    logger.info("%s:%s", url, state)
+    engine = sqlalchemy.create_engine(db_url, echo=False)
 
-# get all anchor tags
+    Session = sqlalchemy.orm.sessionmaker(bind=engine)
+    session = Session()
+
+    try:
+        found_page = session.query(Page).filter_by(url=url).first()
+        found_page.state = state
+        session.commit()
+    except Exception as e:
+        logger.error("An error occurred while insert page data to database.", e)
+        session.rollback()
+    finally:
+        session.close()
+
+
 def parse_response(response):
-        soup = BeautifulSoup(response.read(), 'html.parser')
-        for a in soup.find_all("a"):
-            yield a
+    soup = BeautifulSoup(response.read(), 'html.parser')
+    for a in soup.find_all("a"):
+        yield a
 
 def get_next(response):
     
-        for tag in parse_response(response):
-            if not tag.has_attr('href'):
-                continue
-            try :            
-                href = tag['href']
-                anchor_text = tag.get_text()                
-                target = urlparse(href)
-                
-                # in case of telephone nubmer
-                if href.startswith("tel:")  or  href.startswith("#"):
-                    continue
-                # skip javascript:void
-                if target.scheme == 'javascript':
-                    continue
-                
-                new_link = Link(link_text=anchor_text) 
-                if target.scheme == 'http' and target.scheme == 'https':
-                    new_link.url = urlparse(href) 
-                else:
-                    new_link.url = urljoin(response.geturl(), href)
-                yield new_link
+    for tag in parse_response(response):
+        if not tag.has_attr('href'):
+            continue
+        try :
+            href = tag['href']
+            anchor_text = tag.get_text()
+            target = urlparse(href)
 
-            except Exception as e:
-                logger.error("An error occurred while find anchor link.")
+            # in case of telephone nubmer
+            if href.startswith("tel:")  or  href.startswith("#"):
                 continue
+            # skip javascript:void
+            if target.scheme == 'javascript':
+                continue
+
+            new_link = Page(link_text=anchor_text)
+            if target.scheme == 'http' and target.scheme == 'https':
+                new_link.url = urlparse(href)
+            else:
+                new_link.url = urljoin(response.geturl(), href)
+            yield new_link
+
+        except Exception as e:
+            logger.error("An error occurred while find anchor link.", e)
+            continue
 
 def do_request(p):
 
-        url = p.url
-        parent_id = p.parent_id
-        txt = p.link_text
+    url = p.url
+    parent_id = p.parent_id
+    txt = p.link_text
 
-        # skip if url has already crawled.
-        if urlparse(url).hostname not in allow_urls:
-            logger.info("This domain is not target for crawling.(%s)", url)
-            return
+    # skip if url has already crawled.
+    if urlparse(url).hostname not in allow_urls:
+        logger.info("This domain is not target for crawling.(%s)", url)
+        return
 
-        if find_page(url) is not None:
-            logger.info("This url has been already crawled.(%s)", url)
-            return
+    page = find_page(url)
+    if page is not None:
+        logger.info("This url has been already crawled.(%s)", url)
+        return
 
-        # change to already crawled. 
-        response = None
-        result_url = None
-        sleep(interval)
-        try:
-            logger.debug("request to %s", url)
-            response = urllib.request.urlopen(url)
-            # consider redirect.
-            result_url = response.geturl() 
-            insert_page(result_url, response.code, parent_id, txt, 0)
-        except HTTPError as e:
-            insert_page(result_url, response.code, parent_id, txt, 0)
-            return
+    response = None
+    result_url = None
+    sleep(interval)
+    try:
+        logger.debug("request to %s", url)
+        response = urllib.request.urlopen(url)
+        # consider redirect.
+        result_url = response.geturl()
+        logger.debug("insert page.")
+        insert_page(result_url, response.code, parent_id, txt, State.in_progress.value)
+    except HTTPError as e:
+        insert_page(result_url, e.code, parent_id, txt, State.finished.value)
+        return
 
-        # find next crawl target and retry.
-        new_parent = find_page(result_url)
-        (do_request(l.url, new_parent.id, l.txt) for l in get_next(response))
-
+    # find next crawl target and retry.
+    new_parent = find_page(result_url)
+    for l in get_next(response):
+        do_request(Page(url=l.url, parent_id=new_parent.id, link_text=l.link_text))
+    update_state(result_url, State.finished.value)
 
 if __name__ == "__main__":
 
@@ -153,5 +177,5 @@ if __name__ == "__main__":
     
     start = args.url[0]
     logger.debug("start crawling.")
-    do_request(start, 1, "")
+    do_request(Page(url=start, parent_id=1, link_text=""))
     logger.debug("finish crawling.")
