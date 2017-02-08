@@ -1,4 +1,15 @@
 beautifulsoup4==4.5.3
 bs4==0.0.1
+flake8==2.5.5
+flake8-import-order==0.11
+flake8-pep257==1.0.5
+hacking==0.13.0
+mccabe==0.2.1
+pbr==1.10.0
+pep257==0.7.0
+pep8==1.5.7
+pycodestyle==2.3.1
+pyflakes==0.8.1
 PyMySQL==0.7.9
+six==1.10.0
 SQLAlchemy==1.1.5
