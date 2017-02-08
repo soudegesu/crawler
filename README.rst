@@ -1,6 +1,28 @@
+============================
 rounding-nurse
 ============================
 
-rounding-nurse will crawl the pages of the web site and accumulate the data as to whether the page is alive.
-For example, when you renew your homepage, you can check whether the page is alive, that is, whether there is no dead link.
+`rounding-nurse` is a crawler that collects the HTTP Status of the web site.
+
+Description
+==============================
+
+`rounding-nurse` searches the URL string of the href attribute of the <a> tag from the acquired page, and search the web page recursively.
+There are examples of use cases as follows.
+* Check dead links after web site renewal.
+
+
+Usage
+==============================
+
+* install python modules
+`
+pip install -r requirements.txt
+`
+
+* run rounding_nurse
+`
+python src/crawl.py -u http://xxxx.xx.xx/ -i xxxx.xx.xx yyyy.yy.yy
+`
+
 
