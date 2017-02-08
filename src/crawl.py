@@ -12,7 +12,6 @@ import argparse
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
-from sqlalchemy import text
 from logging import getLogger, StreamHandler, DEBUG
 from enum import IntEnum
 
