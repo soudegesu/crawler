@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from itertools import chain
 from bs4 import BeautifulSoup
 import urllib.request
