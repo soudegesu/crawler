@@ -26,9 +26,9 @@ db_url = 'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8'
 Base = sqlalchemy.ext.declarative.declarative_base()
 
 class State(IntEnum):
-	not_work = 0
-	in_progress = 1
-	finished = 2
+    not_work = 0
+    in_progress = 1
+    finished = 2
 
 class Page(Base):
     __tablename__ = 'page'
