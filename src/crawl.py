@@ -22,7 +22,6 @@ logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
 db_url = 'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8'
-result_set = set()
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
