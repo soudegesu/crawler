@@ -43,72 +43,77 @@ class Page(Base):
     link_text = sqlalchemy.Column(sqlalchemy.Text)
     state = sqlalchemy.Column(sqlalchemy.Integer)
 
-    
+class SessionFactory(object):
+
+    def __init__(self):
+        self.engine = sqlalchemy.create_engine('mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8', echo=False)
+        Base.metadata.create_all(self.engine)
+
+    def create(self):
+        Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
+        return Session()
+
+class SessionContext(object):
+
+    def __init__(self, session):
+        self.session = session
+
+    def __enter__(self):
+        return self.session
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.session.close()
+
+
+class SessionContextFactory(object):
+
+    def __init__(self):
+        self.session_factory = SessionFactory()
+
+    def create(self):
+        return SessionContext(self.session_factory.create())
+
 def find_page(url):
-    # create session object
-    engine = sqlalchemy.create_engine(db_url, echo=False)
-    
-    Session = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = Session()
     found_page = None
-    try:
-        found_page = session.query(Page).filter_by(url=url).first()
-    except Exception as e:
-        logger.error("An error occurred while finding %s from database.", url, e)
-    finally:
-        session.close()
+    with SessionContextFactory().create() as session:
+        try:
+            found_page = session.query(Page).filter_by(url=url).first()
+        except Exception as e:
+            logger.error("An error occurred while finding %s from database.", url, e)
 
     return found_page
 
 def find_previous_page(previous_url):
-    # create session object
-    engine = sqlalchemy.create_engine(db_url, echo=False)
-
-    Session = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = Session()
     found_page = None
-    try:
-        found_page = session.query(Page).filter_by(previous_url=previous_url).first()
-    except Exception as e:
-        logger.error("An error occurred while finding %s from database.", previous_url, e)
-    finally:
-        session.close()
+    with SessionContextFactory().create() as session:
+        try:
+            found_page = session.query(Page).filter_by(previous_url=previous_url).first()
+        except Exception as e:
+            logger.error("An error occurred while finding %s from database.", previous_url, e)
 
     return found_page
 
 def insert_page(url, previous_url, status, parent_id, link_text, state):
-    engine = sqlalchemy.create_engine(db_url, echo=False)
-
-    Session = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = Session()
-
-    try:
-        logger.debug("insert data %s.", url)
-        page = Page(url=url, previous_url=previous_url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
-        session.add(page)
-        session.commit()
-    except Exception as e:
-        logger.error("An error occurred while insert page data to database.", e)
-        session.rollback()
-    finally:
-        session.close()
+    with SessionContextFactory().create() as session:
+        try:
+            logger.debug("insert data %s.", url)
+            page = Page(url=url, previous_url=previous_url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
+            session.add(page)
+            session.commit()
+        except Exception as e:
+            logger.error("An error occurred while insert page data to database.", e)
+            session.rollback()
 
 def update_state(url, state):
     logger.info("%s:%s", url, state)
-    engine = sqlalchemy.create_engine(db_url, echo=False)
-
-    Session = sqlalchemy.orm.sessionmaker(bind=engine)
-    session = Session()
-
-    try:
-        found_page = session.query(Page).filter_by(url=url).first()
-        found_page.state = state
-        session.commit()
-    except Exception as e:
-        logger.error("An error occurred while insert page data to database.", e)
-        session.rollback()
-    finally:
-        session.close()
+    with SessionContextFactory().create() as session:
+        try:
+            found_page = session.query(Page).filter_by(url=url).first()
+            found_page.state = state
+            session.commit()
+        except Exception as e:
+            logger.error("An error occurred while insert page data to database.", e)
+            session.rollback()
 
 
 def parse_response(response):
@@ -190,7 +195,7 @@ if __name__ == "__main__":
     #set global variables.
     allow_urls = list(chain.from_iterable(args.include))
     interval = args.sleep
-    
+
     start = args.url[0]
     logger.debug("start crawling.")
     do_request(Page(url=start, parent_id=1, link_text=""))
