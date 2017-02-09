@@ -27,7 +27,7 @@ Usage
 
 .. code-block:: sh
 
-    python src/crawl.py -u http://xxxx.xx.xx/ -i xxxx.xx.xx yyyy.yy.yy
+    python rounding_nurse/crawl.py -u http://xxxx.xx.xx/ -i xxxx.xx.xx yyyy.yy.yy
 
 
 
