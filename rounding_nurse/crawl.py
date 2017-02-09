@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-
+import configparser
 from enum import IntEnum
 from itertools import chain
 from bs4 import BeautifulSoup
@@ -15,7 +15,7 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 import urllib.request
-
+import os
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 import sqlalchemy
@@ -30,6 +30,9 @@ logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
 Base = sqlalchemy.ext.declarative.declarative_base()
+config = configparser.ConfigParser()
+config.sections()
+config.read(os.path.join(os.path.dirname(__file__), 'connection.conf'))
 
 
 class State(IntEnum):
@@ -54,7 +57,7 @@ class SessionFactory(object):
 
     def __init__(self):
         self.engine = sqlalchemy.create_engine(
-            'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8', echo=False)
+            config["mysql"]["url"], echo=False)
         Base.metadata.create_all(self.engine)
 
     def create(self):
