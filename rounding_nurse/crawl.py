@@ -23,7 +23,6 @@ handler = StreamHandler()
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-db_url = 'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8'
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
