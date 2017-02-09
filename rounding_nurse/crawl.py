@@ -1,19 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
+
+from enum import IntEnum
 from itertools import chain
 from bs4 import BeautifulSoup
-import urllib.request
+
+from logging import DEBUG
+from logging import getLogger
+from logging import StreamHandler
+from time import sleep
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.parse import urljoin
-from time import sleep
-import argparse
-import sqlalchemy
-import sqlalchemy.orm
+import urllib.request
+
 import sqlalchemy.ext.declarative
-from logging import getLogger, StreamHandler, DEBUG
-from enum import IntEnum
+import sqlalchemy.orm
+import sqlalchemy
+
 
 global allow_urls
 global interval
@@ -23,13 +29,14 @@ handler = StreamHandler()
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-
 Base = sqlalchemy.ext.declarative.declarative_base()
+
 
 class State(IntEnum):
     not_work = 0
     in_progress = 1
     finished = 2
+
 
 class Page(Base):
     __tablename__ = 'page'
@@ -42,15 +49,18 @@ class Page(Base):
     link_text = sqlalchemy.Column(sqlalchemy.Text)
     state = sqlalchemy.Column(sqlalchemy.Integer)
 
+
 class SessionFactory(object):
 
     def __init__(self):
-        self.engine = sqlalchemy.create_engine('mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8', echo=False)
+        self.engine = sqlalchemy.create_engine(
+            'mysql+pymysql://soudegesu:soudegesu@127.0.0.1/crawl?charset=utf8', echo=False)
         Base.metadata.create_all(self.engine)
 
     def create(self):
         Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
         return Session()
+
 
 class SessionContext(object):
 
@@ -72,6 +82,7 @@ class SessionContextFactory(object):
     def create(self):
         return SessionContext(self.session_factory.create())
 
+
 def find_page(url):
     found_page = None
     with SessionContextFactory().create() as session:
@@ -81,6 +92,7 @@ def find_page(url):
             logger.error("An error occurred while finding %s from database.", url, e)
 
     return found_page
+
 
 def find_previous_page(previous_url):
     found_page = None
@@ -92,16 +104,20 @@ def find_previous_page(previous_url):
 
     return found_page
 
+
 def insert_page(url, previous_url, status, parent_id, link_text, state):
     with SessionContextFactory().create() as session:
         try:
             logger.debug("insert data %s.", url)
-            page = Page(url=url, previous_url=previous_url, status=status, parent_id=parent_id, link_text=link_text.strip(), state=state)
+            page = Page(url=url, previous_url=previous_url,
+                        status=status, parent_id=parent_id,
+                        link_text=link_text.strip(), state=state)
             session.add(page)
             session.commit()
         except Exception as e:
             logger.error("An error occurred while insert page data to database.", e)
             session.rollback()
+
 
 def update_state(url, state):
     logger.info("%s:%s", url, state)
@@ -119,6 +135,7 @@ def parse_response(response):
     soup = BeautifulSoup(response.read(), 'html.parser')
     for a in soup.find_all("a"):
         yield a
+
 
 def get_next(response):
     
@@ -147,6 +164,7 @@ def get_next(response):
         except Exception as e:
             logger.error("An error occurred while find anchor link.", e)
             continue
+
 
 def do_request(p):
 
