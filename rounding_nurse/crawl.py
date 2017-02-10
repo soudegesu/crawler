@@ -44,7 +44,8 @@ class State(IntEnum):
 class Page(Base):
     __tablename__ = 'page'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
+    id = sqlalchemy.Column(
+        sqlalchemy.Integer, primary_key=True, autoincrement=True)
     url = sqlalchemy.Column(sqlalchemy.String(255))
     previous_url = sqlalchemy.Column(sqlalchemy.String(255))
     status = sqlalchemy.Column(sqlalchemy.Integer)
@@ -92,7 +93,8 @@ def find_page(url):
         try:
             found_page = session.query(Page).filter_by(url=url).first()
         except Exception as e:
-            logger.error("An error occurred while finding %s from database.", url, e)
+            logger.error(
+                "An error occurred while finding %s from database.", url, e)
 
     return found_page
 
@@ -101,9 +103,11 @@ def find_previous_page(previous_url):
     found_page = None
     with SessionContextFactory().create() as session:
         try:
-            found_page = session.query(Page).filter_by(previous_url=previous_url).first()
+            found_page = session.query(Page).filter_by(
+                previous_url=previous_url).first()
         except Exception as e:
-            logger.error("An error occurred while finding %s from database.", previous_url, e)
+            logger.error(
+                "An error occurred while finding %s from database.", previous_url, e)
 
     return found_page
 
@@ -118,7 +122,8 @@ def insert_page(url, previous_url, status, parent_id, link_text, state):
             session.add(page)
             session.commit()
         except Exception as e:
-            logger.error("An error occurred while insert page data to database.", e)
+            logger.error(
+                "An error occurred while insert page data to database.", e)
             session.rollback()
 
 
@@ -130,7 +135,8 @@ def update_state(url, state):
             found_page.state = state
             session.commit()
         except Exception as e:
-            logger.error("An error occurred while insert page data to database.", e)
+            logger.error(
+                "An error occurred while insert page data to database.", e)
             session.rollback()
 
 
@@ -141,17 +147,17 @@ def parse_response(response):
 
 
 def get_next(response):
-    
+
     for tag in parse_response(response):
         if not tag.has_attr('href'):
             continue
-        try :
+        try:
             href = tag['href']
             anchor_text = tag.get_text()
             target = urlparse(href)
 
             # in case of telephone nubmer
-            if href.startswith("tel:")  or  href.startswith("#"):
+            if href.startswith("tel:") or href.startswith("#"):
                 continue
             # skip javascript:void
             if target.scheme == 'javascript':
@@ -193,26 +199,32 @@ def do_request(p):
         # consider redirect.
         result_url = response.geturl()
         logger.debug("insert page.")
-        insert_page(result_url, url, response.code, parent_id, txt, State.in_progress.value)
+        insert_page(result_url, url, response.code,
+                    parent_id, txt, State.in_progress.value)
     except HTTPError as e:
-        insert_page(result_url, url, e.code, parent_id, txt, State.finished.value)
+        insert_page(result_url, url, e.code, parent_id,
+                    txt, State.finished.value)
         return
 
     # find next crawl target and retry.
     new_parent = find_page(result_url)
     for l in get_next(response):
-        do_request(Page(url=l.url, parent_id=new_parent.id, link_text=l.link_text))
+        do_request(
+            Page(url=l.url, parent_id=new_parent.id, link_text=l.link_text))
     update_state(result_url, State.finished.value)
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--url', nargs=1, required=True, help='target root url.')
-    parser.add_argument('-i', '--include', nargs='+', action='append', required=True, help='crawling enable domains.')
-    parser.add_argument('-s', '--sleep', nargs=1, type=int, default=1, help='crawling interval: default is 1 second.')
+    parser.add_argument('-u', '--url', nargs=1,
+                        required=True, help='target root url.')
+    parser.add_argument('-i', '--include', nargs='+', action='append',
+                        required=True, help='crawling enable domains.')
+    parser.add_argument('-s', '--sleep', nargs=1, type=int,
+                        default=1, help='crawling interval: default is 1 second.')
     args = parser.parse_args()
 
-    #set global variables.
+    # set global variables.
     allow_urls = list(chain.from_iterable(args.include))
     interval = args.sleep
 
