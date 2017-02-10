@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Connect to the database using SQLAlchemy.
+To use the module, please write as fellows.
+
+SessionContextFactory.create(db_url).create()
+"""
+
 import sqlalchemy.orm
 import sqlalchemy
 
@@ -8,6 +15,9 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 
 
 class SessionFactory(object):
+    """
+    Session Maker wrapper.
+    """
 
     def __init__(self, url):
         self.engine = sqlalchemy.create_engine(
@@ -20,6 +30,9 @@ class SessionFactory(object):
 
 
 class SessionContext(object):
+    """
+    Make it possible to close with `with` statement.
+    """
 
     def __init__(self, session):
         self.session = session
@@ -32,6 +45,9 @@ class SessionContext(object):
 
 
 class SessionContextFactory(object):
+    """
+    create SessionContext
+    """
 
     def __init__(self, url):
         self.session_factory = SessionFactory(url)
