@@ -3,23 +3,20 @@
 
 import argparse
 import configparser
-from enum import IntEnum
 from itertools import chain
 from bs4 import BeautifulSoup
 
-from logging import DEBUG
-from logging import getLogger
-from logging import StreamHandler
+from logging import (DEBUG, getLogger, StreamHandler)
 from time import sleep
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 import urllib.request
 import os
-import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 import sqlalchemy
-
+from database.models import Page
+from database.constant import State
 
 global allow_urls
 global interval
@@ -29,29 +26,12 @@ handler = StreamHandler()
 logger.setLevel(DEBUG)
 logger.addHandler(handler)
 
-Base = sqlalchemy.ext.declarative.declarative_base()
 config = configparser.ConfigParser()
 config.sections()
 config.read(os.path.join(os.path.dirname(__file__), 'connection.conf'))
 
 
-class State(IntEnum):
-    not_work = 0
-    in_progress = 1
-    finished = 2
-
-
-class Page(Base):
-    __tablename__ = 'page'
-
-    id = sqlalchemy.Column(
-        sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    url = sqlalchemy.Column(sqlalchemy.String(255))
-    previous_url = sqlalchemy.Column(sqlalchemy.String(255))
-    status = sqlalchemy.Column(sqlalchemy.Integer)
-    parent_id = sqlalchemy.Column(sqlalchemy.Integer)
-    link_text = sqlalchemy.Column(sqlalchemy.Text)
-    state = sqlalchemy.Column(sqlalchemy.Integer)
+Base = sqlalchemy.ext.declarative.declarative_base()
 
 
 class SessionFactory(object):
