@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import configparser
 from itertools import chain
 from bs4 import BeautifulSoup
 
@@ -12,11 +11,12 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 import urllib.request
-import os
-import sqlalchemy.orm
-import sqlalchemy
 from database.models import Page
 from database.constant import State
+from database.con.session import SessionContextFactory
+import os
+import configparser
+
 
 global allow_urls
 global interval
@@ -29,47 +29,12 @@ logger.addHandler(handler)
 config = configparser.ConfigParser()
 config.sections()
 config.read(os.path.join(os.path.dirname(__file__), 'connection.conf'))
-
-
-Base = sqlalchemy.ext.declarative.declarative_base()
-
-
-class SessionFactory(object):
-
-    def __init__(self):
-        self.engine = sqlalchemy.create_engine(
-            config["mysql"]["url"], echo=False)
-        Base.metadata.create_all(self.engine)
-
-    def create(self):
-        Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
-        return Session()
-
-
-class SessionContext(object):
-
-    def __init__(self, session):
-        self.session = session
-
-    def __enter__(self):
-        return self.session
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.close()
-
-
-class SessionContextFactory(object):
-
-    def __init__(self):
-        self.session_factory = SessionFactory()
-
-    def create(self):
-        return SessionContext(self.session_factory.create())
+db_url = config["mysql"]["url"]
 
 
 def find_page(url):
     found_page = None
-    with SessionContextFactory().create() as session:
+    with SessionContextFactory(db_url).create() as session:
         try:
             found_page = session.query(Page).filter_by(url=url).first()
         except Exception as e:
@@ -81,7 +46,7 @@ def find_page(url):
 
 def find_previous_page(previous_url):
     found_page = None
-    with SessionContextFactory().create() as session:
+    with SessionContextFactory(db_url).create() as session:
         try:
             found_page = session.query(Page).filter_by(
                 previous_url=previous_url).first()
@@ -93,7 +58,7 @@ def find_previous_page(previous_url):
 
 
 def insert_page(url, previous_url, status, parent_id, link_text, state):
-    with SessionContextFactory().create() as session:
+    with SessionContextFactory(db_url).create() as session:
         try:
             logger.debug("insert data %s.", url)
             page = Page(url=url, previous_url=previous_url,
@@ -109,7 +74,7 @@ def insert_page(url, previous_url, status, parent_id, link_text, state):
 
 def update_state(url, state):
     logger.info("%s:%s", url, state)
-    with SessionContextFactory().create() as session:
+    with SessionContextFactory(db_url).create() as session:
         try:
             found_page = session.query(Page).filter_by(url=url).first()
             found_page.state = state
