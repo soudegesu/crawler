@@ -3,17 +3,18 @@
 
 import argparse
 from itertools import chain
-from bs4 import BeautifulSoup
-
 from logging import (DEBUG, getLogger, StreamHandler)
 from time import sleep
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 import urllib.request
-from database.models import Page
-from database.constant import State
+
+from bs4 import BeautifulSoup
+from database.orm.models import Page
+from database.orm.constant import State
 from database.query import (find_page, find_previous_page, insert_page, update_state)
+
 
 global allow_urls
 global interval
