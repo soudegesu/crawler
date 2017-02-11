@@ -6,7 +6,7 @@ rounding-nurse
 
 .. class:: no-web no-pdf
 
-|coverity| |climate| |coverage|
+|coverity| |climate| |coverage| |gemnasium|
 
 Description
 ==============================
@@ -46,3 +46,7 @@ Usage
 .. |coverage| image:: https://codeclimate.com/github/soudegesu/rounding_nurse/badges/coverage.svg
    :target: https://codeclimate.com/github/soudegesu/rounding_nurse/coverage
    :alt: Test Coverage
+
+.. |gemnasium| image:: https://gemnasium.com/badges/github.com/soudegesu/rounding_nurse.svg
+   :target: https://gemnasium.com/github.com/soudegesu/rounding_nurse
+   :alt: Dependency Status
