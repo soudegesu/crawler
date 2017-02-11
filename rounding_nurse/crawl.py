@@ -75,7 +75,6 @@ def do_request(p):
         logger.info("This url has been already crawled.(%s)", url)
         return
 
-    response = None
     result_url = None
     sleep(interval)
     try:
