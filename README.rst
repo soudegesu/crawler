@@ -6,7 +6,7 @@ rounding-nurse
 
 .. class:: no-web no-pdf
 
-|coverity|
+|coverity| |climate| |coverage|
 
 Description
 ==============================
@@ -38,3 +38,11 @@ Usage
 .. |coverity| image:: https://scan.coverity.com/projects/11725/badge.svg
     :target: https://scan.coverity.com/projects/soudegesu-rounding_nurse
     :alt: Coverity Scan Build Status
+
+.. |climate| image:: https://codeclimate.com/github/soudegesu/rounding_nurse/badges/gpa.svg
+   :target: https://codeclimate.com/github/soudegesu/rounding_nurse
+   :alt: Code Climate
+
+.. |coverage| image:: https://codeclimate.com/github/soudegesu/rounding_nurse/badges/coverage.svg
+   :target: https://codeclimate.com/github/soudegesu/rounding_nurse/coverage
+   :alt: Test Coverage
