@@ -4,6 +4,10 @@ rounding-nurse
 
 `rounding-nurse` is a crawler that collects the HTTP Status of the web site.
 
+.. class:: no-web no-pdf
+
+|coverity|
+
 Description
 ==============================
 
@@ -31,3 +35,6 @@ Usage
 
 
 
+.. |coverity| image:: https://scan.coverity.com/projects/11725/badge.svg
+    :target: https://scan.coverity.com/projects/soudegesu-rounding_nurse
+    :alt: Coverity Scan Build Status
