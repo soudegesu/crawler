@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import argparse
-from itertools import chain
+import click
 from logging import (DEBUG, getLogger, StreamHandler)
 from time import sleep
 from urllib.error import HTTPError
@@ -13,11 +12,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 from database.orm.models import Page
 from database.orm.constant import State
-from database.query import (find_page, find_previous_page, insert_page, update_state)
-
-
-global allow_urls
-global interval
+from database.query import (
+    find_page, find_previous_page, insert_page, update_state)
 
 logger = getLogger(__name__)
 handler = StreamHandler()
@@ -97,22 +93,22 @@ def do_request(p):
             Page(url=l.url, parent_id=new_parent.id, link_text=l.link_text))
     update_state(result_url, State.finished.value)
 
+
+@click.command()
+@click.option('-u', '--url', nargs=1, required=True, help='target root url.')
+@click.option('-i', '--include', required=True, multiple=True, help='crawling enable domains.')
+@click.option('-s', '--sleep_time', type=int, default=1, help='crawling interval: default is 1 second.')
+def main(url, include, sleep_time):
+
+    global allow_urls
+    allow_urls = include
+    global interval
+    interval = sleep_time
+
+    logger.debug("start crawling.")
+    do_request(Page(url=url, parent_id=1, link_text=""))
+    logger.debug("finish crawling.")
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--url', nargs=1,
-                        required=True, help='target root url.')
-    parser.add_argument('-i', '--include', nargs='+', action='append',
-                        required=True, help='crawling enable domains.')
-    parser.add_argument('-s', '--sleep', nargs=1, type=int,
-                        default=1, help='crawling interval: default is 1 second.')
-    args = parser.parse_args()
-
-    # set global variables.
-    allow_urls = list(chain.from_iterable(args.include))
-    interval = args.sleep
-
-    start = args.url[0]
-    logger.debug("start crawling.")
-    do_request(Page(url=start, parent_id=1, link_text=""))
-    logger.debug("finish crawling.")
+    main()
