@@ -48,9 +48,6 @@ class SessionContextFactory(object):
     """
     create SessionContext
     """
-
-    def __init__(self, url):
-        self.session_factory = SessionFactory(url)
-
-    def create(self):
-        return SessionContext(self.session_factory.create())
+    @staticmethod
+    def create(url):
+        return SessionContext(SessionFactory(url).create())

@@ -21,7 +21,7 @@ logger.setLevel(DEBUG)
 
 def find_page(url):
     found_page = None
-    with SessionContextFactory(db_url).create() as session:
+    with SessionContextFactory.create(db_url) as session:
         try:
             found_page = session.query(Page).filter_by(url=url).first()
         except Exception as e:
@@ -33,7 +33,7 @@ def find_page(url):
 
 def find_previous_page(previous_url):
     found_page = None
-    with SessionContextFactory(db_url).create() as session:
+    with SessionContextFactory.create(db_url) as session:
         try:
             found_page = session.query(Page).filter_by(
                 previous_url=previous_url).first()
@@ -45,7 +45,7 @@ def find_previous_page(previous_url):
 
 
 def insert_page(url, previous_url, status, parent_id, link_text, state):
-    with SessionContextFactory(db_url).create() as session:
+    with SessionContextFactory.create(db_url) as session:
         try:
             logger.debug("insert data %s.", url)
             page = Page(url=url, previous_url=previous_url,
@@ -61,7 +61,7 @@ def insert_page(url, previous_url, status, parent_id, link_text, state):
 
 def update_state(url, state):
     logger.info("%s:%s", url, state)
-    with SessionContextFactory(db_url).create() as session:
+    with SessionContextFactory.create(db_url) as session:
         try:
             found_page = session.query(Page).filter_by(url=url).first()
             found_page.state = state
