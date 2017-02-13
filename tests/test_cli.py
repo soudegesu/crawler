@@ -1,14 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import click
+from click.testing import CliRunner
 from cli import main
+import pytest
 
 
-class TestCli():
+class TestCliOption():
 
-    def test_main_argument_error(self):
-      pass
-      # main()
+    @pytest.mark.parametrize("options, expected",[
+        ("-i hogehoge", 2), #url is required
+        ("-u hogehoge", 2), # include is required
+        ("-u hogehoge hughauga -i piyopiyo", 2), # url is required
+        ("-u hogehoge -i piyopiyo -s aaa", 2), # sleep_time is integer
+    ])
+    def test_main_option_validate(self, options, expected):
 
-# if __name__ == "__main__":
-#     pytest.main()
+        runner = CliRunner()
+        result = runner.invoke(main, options)
+        assert result.exit_code == expected
