@@ -25,7 +25,7 @@ setup(
     author = "soudegesu",
     packages = find_packages(),
     setup_requires = ['pytest-runner'],
-    tests_require = ['pytest'],
-    test_suite = ['test']
+    tests_require = ['pytest-cov', 'pytest'],
+    # test_suite = 'tests'
     # cmdclass={'test', PyTest}
 )
