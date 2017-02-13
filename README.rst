@@ -6,7 +6,7 @@ rounding-nurse
 
 .. class:: no-web no-pdf
 
-|coverity| |climate| |coverage| |gemnasium|
+|travis| |coverity| |climate| |coverage| |gemnasium|
 
 Description
 ==============================
@@ -34,6 +34,9 @@ Usage
     python rounding_nurse/crawl.py -u http://xxxx.xx.xx/ -i xxxx.xx.xx yyyy.yy.yy
 
 
+.. |travis| image:: https://travis-ci.org/soudegesu/rounding_nurse.svg?branch=master
+   :target: https://travis-ci.org/soudegesu/rounding_nurse
+   :alt: Travis CI
 
 .. |coverity| image:: https://scan.coverity.com/projects/11725/badge.svg
     :target: https://scan.coverity.com/projects/soudegesu-rounding_nurse
