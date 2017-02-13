@@ -6,9 +6,9 @@ script: python3 setup.py test
 
 env:
     global:
-    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-    # via the "travis encrypt" command using the project repo's public key
-    - secure: "BKC89niopPKpfxm9isCsZiryhikHUkddU5Nt0B8zUw9rHUeKls4HWJ04s3bLkDwVrb57pKrvRa7urV6qkWfMNV18+o4n9RuAmHQuPEPZ78m2m5oATq4tZSizADs07fsJxBy+CIGG3+YC85cqlB9nPMzaJRSWzuhO6Efgl8Ep5bktNUd0fcRieH0/T+41mVctwDA1+sf8Awx4spsC2+oFA5SUXMB9ZB4t4RI5oU/Uo9cvL+SFR0rYaCkRHdRV0bVUpaKHhdCUyuB6xJ5k9TqtnTjtAXm/mvbqYU4XYeSEfMHVpKa8zZan43j/4uDX/H/Cy36JswQj2vELp63w4YCBHCzQ+W75XY2MZ1OvUJULRwNCprfcpKPwUVzKdlLk9EQ2OiQTyneZaKCCw23NZRjY9IaJICf+dJQGe09HbN9GsBerpLzn42KK+tbiw7F9Xqtd4CMN/GmA8/qOJ5RUA5j9mrBzjq+O8HwpBYStppYKwohbNLKdabcBNttpwlI6MhxTAhNsHIftxmsooDzs0o9cIQAxBg2T84C7i2Z0qaX+PBFqTay+fzdkCibEw8vYlUQc45xlgcFsDZpvcPz93X2JD9rmJxk+PWptbWjsm7rgPdWmQ+RCV/HiNCpGu90r/vvO9+IE8kd7KT9AnNf0cuwa3AIN1sjx2clIbVBWAx9kWLw="
+        # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+        # via the "travis encrypt" command using the project repo's public key
+        - secure: "BKC89niopPKpfxm9isCsZiryhikHUkddU5Nt0B8zUw9rHUeKls4HWJ04s3bLkDwVrb57pKrvRa7urV6qkWfMNV18+o4n9RuAmHQuPEPZ78m2m5oATq4tZSizADs07fsJxBy+CIGG3+YC85cqlB9nPMzaJRSWzuhO6Efgl8Ep5bktNUd0fcRieH0/T+41mVctwDA1+sf8Awx4spsC2+oFA5SUXMB9ZB4t4RI5oU/Uo9cvL+SFR0rYaCkRHdRV0bVUpaKHhdCUyuB6xJ5k9TqtnTjtAXm/mvbqYU4XYeSEfMHVpKa8zZan43j/4uDX/H/Cy36JswQj2vELp63w4YCBHCzQ+W75XY2MZ1OvUJULRwNCprfcpKPwUVzKdlLk9EQ2OiQTyneZaKCCw23NZRjY9IaJICf+dJQGe09HbN9GsBerpLzn42KK+tbiw7F9Xqtd4CMN/GmA8/qOJ5RUA5j9mrBzjq+O8HwpBYStppYKwohbNLKdabcBNttpwlI6MhxTAhNsHIftxmsooDzs0o9cIQAxBg2T84C7i2Z0qaX+PBFqTay+fzdkCibEw8vYlUQc45xlgcFsDZpvcPz93X2JD9rmJxk+PWptbWjsm7rgPdWmQ+RCV/HiNCpGu90r/vvO9+IE8kd7KT9AnNf0cuwa3AIN1sjx2clIbVBWAx9kWLw="
 
 before_install:
     - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
