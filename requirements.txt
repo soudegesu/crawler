@@ -2,6 +2,8 @@ autopep8==1.2.4
 beautifulsoup4==4.5.3
 bs4==0.0.1
 click==6.7
+codeclimate-test-reporter==0.2.0
+coverage==4.3.4
 flake8==2.5.5
 flake8-import-order==0.11
 flake8-pep257==1.0.5
@@ -10,8 +12,11 @@ mccabe==0.2.1
 pbr==1.10.0
 pep257==0.7.0
 pep8==1.5.7
+py==1.4.32
 pycodestyle==2.3.1
 pyflakes==0.8.1
 PyMySQL==0.7.9
+pytest==3.0.6
+requests==2.13.0
 six==1.10.0
 SQLAlchemy==1.1.5
