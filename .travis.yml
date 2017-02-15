@@ -10,3 +10,10 @@ after_success:
 addons:
     code_climate:
         repo_token: $CODECLIMATE_REPO_TOKEN
+    coverity_scan:
+        project:
+            name: "soudegesu/rounding_nurse"
+            description: "Build submitted via Travis CI"
+        build_command_prepend: "./configure; make clean"
+        build_command: "make -j 4"
+        branch_pattern: master
