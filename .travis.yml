@@ -4,7 +4,7 @@ python:
 install:
     - "pip install -r requirements.txt"
     - "pip install coveralls"
-script: coverage run --source=rounding_nurse setup.py test
+script: python3 setup.py test
 after_success:
     - coveralls
 addons:
