@@ -7,6 +7,7 @@ install:
 script: python3 setup.py test
 after_success:
     - coveralls
+    - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
 addons:
     code_climate:
         repo_token: $CODECLIMATE_REPO_TOKEN
