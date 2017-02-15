@@ -46,8 +46,8 @@ Usage
    :target: https://codeclimate.com/github/soudegesu/rounding_nurse
    :alt: Code Climate
 
-.. |coverage| image:: https://codeclimate.com/github/soudegesu/rounding_nurse/badges/coverage.svg
-   :target: https://codeclimate.com/github/soudegesu/rounding_nurse/coverage
+.. |coverage| image:: https://coveralls.io/repos/github/soudegesu/rounding_nurse/badge.svg?branch=master
+   :target: https://coveralls.io/github/soudegesu/rounding_nurse?branch=master
    :alt: Test Coverage
 
 .. |gemnasium| image:: https://gemnasium.com/badges/github.com/soudegesu/rounding_nurse.svg
