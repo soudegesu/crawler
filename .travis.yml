@@ -1,6 +1,9 @@
 language: python
 python:
     - "3.5"
+env:
+  global:
+   - secure: "dRiVvbaMPd2vy7pmhO6zALkX0KwxGOd9o710Pn6LqJvbjSWaVWsywtjvavSqE6YHZu2z/s8YXjPu2w6f3k7Lt0oDAkrzzga8pEog0oZF0NLkspP4E8W9rYBYS2z6vVSm+qLcciibg/nrvkbjYYwxaPoZG2927r3NB9eWeHrs53w8po9KNbj3Z7C4lai+eUnEaB930dIL9R49gUcxdMbQwS3GXh13eHIYwhq6CRTS9uo8nO9U/jDgsJ2du3PvRXqniZRfH2V5s4b1X1OZoKX+odG3I0aAQKNxALITKbnlXIyTD3+TVMdu/C52AR1rAsm9dbxj1/yIcZBgai9PRNXZQmJZVLkHe7gKJy8xgnWRgdMmp7zqFzw8JvVrTlNmtVNrbLA0u7VUh4xiih9JK5UMv5CFSOIyWNB6Q4OZVnPFdctLZlfo8hF6YhMyyVz3Cs6Cb3LAB2MfmiUJq/MVAacIkQdu0M3UyG0wT4MI6EPk50ytrpem7knyHLVVJsUc5KRJIqgA9pu77xcdiXhZvcwYDXtUfikslOnPpNQ2oEZqmoeL30lDxADomt0xx6UYViI9d2RHj+g4isLY4JvmivzYoLtjMuW05+DRgC4je892+xDAnng48nND3a8NXNaD2V/37Z3IE/nWKuRHZhcuRvDi7fHf3N8bdjnBOsyWWri6DMI="
 before_install:
       - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 install:
